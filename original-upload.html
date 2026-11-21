@@ -1,0 +1,1990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Daily, Weekly & Bi-Weekly Expense & Income Monitor | የዕለት፣ የሳምንት እና የሁለት ሳምንት ወጪ እና ገቢ መከታተያ</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --surface: #111827;
+      --surface-2: #1f2937;
+      --surface-3: #283548;
+      --border: #2e3b52;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #10b981;
+      --primary-dark: #059669;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+      --accent: #8b5cf6;
+      --radius: 16px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Ethiopic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      padding-bottom: calc(88px + var(--safe-bottom));
+    }
+
+    /* Header */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(11, 17, 32, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 14px;
+    }
+
+    .topbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.02rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .today-badge {
+      font-size: 0.76rem;
+      color: var(--primary);
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    .toggles {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .pill-btn {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pill-btn.active {
+      background: var(--primary);
+      color: #042f2e;
+      border-color: var(--primary);
+    }
+
+    /* Container */
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    /* Period Selector Bar */
+    .period-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .cycle-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .cycle-btn {
+      background: var(--surface-2);
+      color: var(--text-muted);
+      border: 1px solid transparent;
+      border-radius: 11px;
+      padding: 9px 6px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 40px;
+    }
+
+    .cycle-btn.active {
+      background: rgba(16, 185, 129, 0.16);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .period-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .nav-arrow {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      width: 40px;
+      height: 38px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .period-label {
+      text-align: center;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .period-sub {
+      display: block;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* Sections */
+    .view-section {
+      display: none;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    @media (min-width: 720px) {
+      .kpi-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 13px;
+    }
+
+    .kpi-title {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .kpi-val {
+      font-size: 1.18rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      word-break: break-word;
+    }
+
+    .kpi-val.income { color: var(--primary); }
+    .kpi-val.expense { color: var(--danger); }
+    .kpi-val.neutral { color: var(--info); }
+
+    .kpi-delta {
+      font-size: 0.72rem;
+      margin-top: 4px;
+      color: var(--text-muted);
+    }
+
+    .delta-good { color: var(--primary); }
+    .delta-bad { color: var(--danger); }
+
+    .section-title {
+      font-size: 0.94rem;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    /* Budget Bar */
+    .progress-track {
+      width: 100%;
+      height: 12px;
+      background: var(--surface-2);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      transition: width 0.25s ease;
+    }
+
+    .progress-fill.warn { background: var(--warning); }
+    .progress-fill.over { background: var(--danger); }
+
+    /* Insights */
+    .insight-item {
+      background: var(--surface-2);
+      border-left: 3px solid var(--primary);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.84rem;
+      margin-bottom: 8px;
+    }
+
+    .insight-item.warn { border-left-color: var(--warning); }
+    .insight-item.danger { border-left-color: var(--danger); }
+
+    /* Charts */
+    .chart-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .canvas-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    canvas {
+      width: 100%;
+      height: 240px;
+      display: block;
+    }
+
+    .cat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      margin-top: 10px;
+    }
+
+    .cat-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .cat-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+    }
+
+    .cat-bar-bg {
+      height: 8px;
+      background: var(--surface-2);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .cat-bar-fg {
+      height: 100%;
+      border-radius: 999px;
+    }
+
+    /* Ledger */
+    .filter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .input, select {
+      width: 100%;
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      min-height: 44px;
+      font-family: inherit;
+    }
+
+    .tx-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .tx-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tx-left {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .tx-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 0.68rem;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .tx-dates {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .tx-note {
+      font-size: 0.78rem;
+      color: #cbd5e1;
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tx-right {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .tx-amt {
+      font-weight: 800;
+      font-size: 0.96rem;
+    }
+
+    .tx-actions {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+      margin-top: 6px;
+    }
+
+    .icon-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 5px 9px;
+      font-size: 0.74rem;
+      cursor: pointer;
+      min-height: 32px;
+    }
+
+    .icon-btn.del {
+      color: #fca5a5;
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    /* Floating Add Button */
+    .fab {
+      position: fixed;
+      right: 16px;
+      bottom: calc(74px + var(--safe-bottom));
+      z-index: 45;
+      background: var(--primary);
+      color: #042f2e;
+      border: none;
+      border-radius: 999px;
+      padding: 14px 20px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 50px;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      background: rgba(17, 24, 39, 0.97);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 6px 4px calc(6px + var(--safe-bottom));
+    }
+
+    .nav-item {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 6px 2px;
+      cursor: pointer;
+      min-height: 48px;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+    }
+
+    .nav-icon {
+      font-size: 1.15rem;
+    }
+
+    /* Modal Bottom Sheet */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      z-index: 60;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    @media (min-width: 640px) {
+      .modal-backdrop {
+        align-items: center;
+        padding: 16px;
+      }
+    }
+
+    .modal-sheet {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 520px;
+      max-height: 92vh;
+      overflow-y: auto;
+      padding: 18px 16px calc(22px + var(--safe-bottom));
+    }
+
+    @media (min-width: 640px) {
+      .modal-sheet {
+        border-radius: 20px;
+      }
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .type-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .type-btn {
+      padding: 11px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 44px;
+    }
+
+    .type-btn.active-expense {
+      background: rgba(239, 68, 68, 0.18);
+      color: #fca5a5;
+      border-color: var(--danger);
+    }
+
+    .type-btn.active-income {
+      background: rgba(16, 185, 129, 0.18);
+      color: #6ee7b7;
+      border-color: var(--primary);
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .cent-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 7px;
+    }
+
+    .chip-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--primary);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 34px;
+    }
+
+    .ec-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 0.8fr 1fr;
+      gap: 6px;
+    }
+
+    .primary-btn {
+      width: 100%;
+      background: var(--primary);
+      color: #042f2e;
+      border: none;
+      border-radius: 12px;
+      padding: 13px;
+      font-size: 0.96rem;
+      font-weight: 800;
+      cursor: pointer;
+      min-height: 48px;
+    }
+
+    .secondary-btn {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 11px 14px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 44px;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 28px 14px;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="topbar-row">
+      <div class="brand">
+        <h1 id="appTitle">Expense & Income Monitor</h1>
+        <div class="today-badge" id="todayDualBadge">Loading date...</div>
+      </div>
+      <div class="toggles">
+        <button class="pill-btn" id="langToggle" type="button">አማርኛ</button>
+        <button class="pill-btn" id="currToggle" type="button">ETB (ብር)</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Cycle & Date Navigation -->
+    <section class="period-bar">
+      <div class="cycle-tabs">
+        <button class="cycle-btn active" data-cycle="daily" id="cycleDaily" type="button">Daily</button>
+        <button class="cycle-btn" data-cycle="weekly" id="cycleWeekly" type="button">Weekly (7d)</button>
+        <button class="cycle-btn" data-cycle="biweekly" id="cycleBiweekly" type="button">Bi-Weekly (14d)</button>
+      </div>
+      <div class="period-nav">
+        <button class="nav-arrow" id="prevPeriod" type="button" aria-label="Previous">&#8592;</button>
+        <div class="period-label">
+          <span id="periodEcLabel"></span>
+          <span class="period-sub" id="periodGcLabel"></span>
+        </div>
+        <button class="nav-arrow" id="nextPeriod" type="button" aria-label="Next">&#8594;</button>
+      </div>
+    </section>
+
+    <!-- VIEW 1: OVERVIEW -->
+    <section class="view-section active" id="view-overview">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title" id="lblIncome">Total Income</div>
+          <div class="kpi-val income" id="kpiIncome">0.00</div>
+          <div class="kpi-delta" id="deltaIncome">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title" id="lblExpense">Total Expenses</div>
+          <div class="kpi-val expense" id="kpiExpense">0.00</div>
+          <div class="kpi-delta" id="deltaExpense">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title" id="lblNet">Net Cash Flow</div>
+          <div class="kpi-val neutral" id="kpiNet">0.00</div>
+          <div class="kpi-delta" id="kpiSavingsRate">0.0%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title" id="lblBurn">Daily Burn Rate</div>
+          <div class="kpi-val" id="kpiBurn">0.00</div>
+          <div class="kpi-delta" id="kpiTxCount">0 entries</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">
+          <span id="lblBudgetTitle">Period Budget Progress</span>
+          <span id="budgetPctText" style="font-size:0.82rem;color:var(--text-muted)">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="budgetFill" style="width:0%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-muted)">
+          <span id="budgetSpentText">Spent: 0.00</span>
+          <span id="budgetLimitText">Budget: 0.00</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title" id="lblInsightsTitle">Smart Analysis & Insights</h3>
+        <div id="insightsBox"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: CHARTS -->
+    <section class="view-section" id="view-charts">
+      <div class="card">
+        <div class="section-title">
+          <span id="lblTrendTitle">Income vs. Expense Trend</span>
+          <div class="chart-controls">
+            <button class="pill-btn active" data-charttype="bar" id="btnChartBar" type="button">Bar</button>
+            <button class="pill-btn" data-charttype="line" id="btnChartLine" type="button">Line</button>
+          </div>
+        </div>
+        <div class="chart-controls">
+          <button class="pill-btn active" data-axis="both" id="axisBoth" type="button">EC+GC</button>
+          <button class="pill-btn" data-axis="ec" id="axisEc" type="button">ኢት (EC)</button>
+          <button class="pill-btn" data-axis="gc" id="axisGc" type="button">GC</button>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="trendCanvas" width="760" height="240"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title" id="lblCatBreakdown">Expense Breakdown by Category</h3>
+        <div id="catBreakdownList" class="cat-list"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: LEDGER -->
+    <section class="view-section" id="view-ledger">
+      <div class="card" style="padding:10px;">
+        <div class="filter-row">
+          <input type="search" id="searchInput" class="input" placeholder="Search note or category..." />
+          <select id="typeFilter">
+            <option value="all" id="optAllTypes">All Types</option>
+            <option value="expense" id="optOnlyExp">Expenses Only</option>
+            <option value="income" id="optOnlyInc">Income Only</option>
+          </select>
+        </div>
+        <div style="font-size:0.76rem;color:var(--text-muted);" id="ledgerScopeNote">
+          Showing entries in selected period
+        </div>
+      </div>
+      <div id="txList" class="tx-list"></div>
+    </section>
+
+    <!-- VIEW 4: BUDGET & BACKUP -->
+    <section class="view-section" id="view-settings">
+      <div class="card">
+        <h3 class="section-title" id="lblSetBudgets">Set Spending Budgets (ETB)</h3>
+        <div class="form-group">
+          <label class="form-label" id="lblDailyBud">Daily Budget Limit (ETB / ብር)</label>
+          <input type="number" step="0.01" min="0" inputmode="decimal" id="inputDailyBudget" class="input" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="lblWeeklyBud">Weekly (7-Day) Budget Limit (ETB / ብር)</label>
+          <input type="number" step="0.01" min="0" inputmode="decimal" id="inputWeeklyBudget" class="input" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="lblBiweeklyBud">Bi-Weekly (14-Day) Budget Limit (ETB / ብር)</label>
+          <input type="number" step="0.01" min="0" inputmode="decimal" id="inputBiweeklyBudget" class="input" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="lblFxRate">USD Exchange Rate (1 USD = ? ETB)</label>
+          <input type="number" step="0.01" min="1" inputmode="decimal" id="inputFxRate" class="input" />
+        </div>
+        <button class="primary-btn" id="saveSettingsBtn" type="button">Save Settings</button>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title" id="lblBackupTitle">Export & Backup Data</h3>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0" id="lblBackupDesc">
+          Save your records to your phone so you never lose cent-level history.
+        </p>
+        <div class="btn-grid" style="margin-bottom:10px;">
+          <button class="secondary-btn" id="exportCsvBtn" type="button">Export CSV</button>
+          <button class="secondary-btn" id="exportJsonBtn" type="button">Backup JSON</button>
+        </div>
+        <div class="btn-grid">
+          <label class="secondary-btn" style="text-align:center;display:flex;align-items:center;justify-content:center;">
+            <span id="importJsonLbl">Restore JSON</span>
+            <input type="file" id="importJsonInput" accept=".json,application/json" style="display:none;" />
+          </label>
+          <button class="secondary-btn" id="loadSampleBtn" type="button" style="color:#fcd34d;">Reset Sample Data</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Floating Add Button -->
+  <button class="fab" id="openAddModal" type="button">
+    <span>+</span>
+    <span id="fabLabel">Add</span>
+  </button>
+
+  <!-- Bottom Mobile Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-view="overview" type="button">
+      <span class="nav-icon">&#128202;</span>
+      <span id="navOverview">Overview</span>
+    </button>
+    <button class="nav-item" data-view="charts" type="button">
+      <span class="nav-icon">&#128200;</span>
+      <span id="navCharts">Charts</span>
+    </button>
+    <button class="nav-item" data-view="ledger" type="button">
+      <span class="nav-icon">&#128221;</span>
+      <span id="navLedger">Ledger</span>
+    </button>
+    <button class="nav-item" data-view="settings" type="button">
+      <span class="nav-icon">&#9881;&#65039;</span>
+      <span id="navSettings">Budget/CSV</span>
+    </button>
+  </nav>
+
+  <!-- Add / Edit Transaction Modal -->
+  <div class="modal-backdrop" id="txModal">
+    <div class="modal-sheet">
+      <div class="modal-head">
+        <h2 id="modalTitle">Add Entry</h2>
+        <button class="pill-btn" id="closeModalBtn" type="button">&#10005;</button>
+      </div>
+
+      <form id="txForm">
+        <input type="hidden" id="editId" />
+
+        <div class="type-switch">
+          <button type="button" class="type-btn active-expense" id="btnTypeExpense">Expense (ወጪ)</button>
+          <button type="button" class="type-btn" id="btnTypeIncome">Income (ገቢ)</button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" id="lblAmount">Amount (ETB / ብር — exact to 0.01)</label>
+          <input type="number" id="txAmount" class="input" step="0.01" min="0.01" inputmode="decimal" placeholder="0.00" required />
+          <div class="cent-chips">
+            <button type="button" class="chip-btn" data-cent="0.01">+0.01</button>
+            <button type="button" class="chip-btn" data-cent="0.05">+0.05</button>
+            <button type="button" class="chip-btn" data-cent="0.10">+0.10</button>
+            <button type="button" class="chip-btn" data-cent="0.25">+0.25</button>
+            <button type="button" class="chip-btn" data-cent="0.50">+0.50</button>
+            <button type="button" class="chip-btn" data-cent="0.75">+0.75</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" id="lblCategory">Category</label>
+          <select id="txCategory"></select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" id="lblPayment">Payment Method</label>
+          <select id="txPayment"></select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" id="lblEcDate">Ethiopian Calendar Date (የኢትዮጵያ ቀን)</label>
+          <div class="ec-grid">
+            <select id="ecMonth"></select>
+            <select id="ecDay"></select>
+            <input type="number" id="ecYear" class="input" min="1990" max="2100" inputmode="numeric" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" id="lblGcDate">Gregorian Date (የፈረንጆች ቀን)</label>
+          <input type="date" id="gcDate" class="input" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" id="lblNote">Note (Optional)</label>
+          <input type="text" id="txNote" class="input" placeholder="e.g., Coffee, Taxi, Salary..." />
+        </div>
+
+        <button type="submit" class="primary-btn" id="saveTxBtn">Save Entry</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const STORAGE_KEY = "eth_bilingual_finance_v2";
+
+      /* =========================================================
+         1. ETHIOPIAN <-> GREGORIAN CALENDAR ENGINE (JDN BASED)
+      ========================================================= */
+      const EC_MONTHS_AM = [
+        "መስከረም", "ጥቅምት", "ኅዳር", "ታኅሣሥ", "ጥር", "የካቲት",
+        "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "ጳጉሜን"
+      ];
+      const EC_MONTHS_EN = [
+        "Meskerem", "Tikimt", "Hidar", "Tahsas", "Tir", "Yekatit",
+        "Megabit", "Miazia", "Ginbot", "Sene", "Hamle", "Nehase", "Pagumen"
+      ];
+      const GC_MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+      const ETHIOPIC_EPOCH = 1723856; // JDN of 0001-01-01 EC (Meskerem 1, 1 EC)
+
+      function isEcLeapYear(ecYear) {
+        return ecYear % 4 === 3;
+      }
+
+      function ecMonthDays(ecYear, ecMonth) {
+        if (ecMonth >= 1 && ecMonth <= 12) return 30;
+        return isEcLeapYear(ecYear) ? 6 : 5;
+      }
+
+      function gregorianToJdn(y, m, d) {
+        const a = Math.floor((14 - m) / 12);
+        const y2 = y + 4800 - a;
+        const m2 = m + 12 * a - 3;
+        return d + Math.floor((153 * m2 + 2) / 5) + 365 * y2 +
+          Math.floor(y2 / 4) - Math.floor(y2 / 100) + Math.floor(y2 / 400) - 32045;
+      }
+
+      function jdnToGregorian(jdn) {
+        const a = jdn + 32044;
+        const b = Math.floor((4 * a + 3) / 146097);
+        const c = a - Math.floor((146097 * b) / 4);
+        const d = Math.floor((4 * c + 3) / 1461);
+        const e = c - Math.floor((1461 * d) / 4);
+        const m = Math.floor((5 * e + 2) / 153);
+        const day = e - Math.floor((153 * m + 2) / 5) + 1;
+        const month = m + 3 - 12 * Math.floor(m / 10);
+        const year = 100 * b + d - 4800 + Math.floor(m / 10);
+        return { year, month, day };
+      }
+
+      function jdnToEthiopic(jdn) {
+        const r = (jdn - ETHIOPIC_EPOCH) % 1461;
+        const rNorm = r < 0 ? r + 1461 : r;
+        const n = (rNorm % 365) + 365 * Math.floor(rNorm / 1460);
+        const year = 4 * Math.floor((jdn - ETHIOPIC_EPOCH) / 1461) +
+          Math.floor(rNorm / 365) - Math.floor(rNorm / 1460) + 1;
+        const month = Math.floor(n / 30) + 1;
+        const day = (n % 30) + 1;
+        return { year, month, day };
+      }
+
+      function ethiopicToJdn(year, month, day) {
+        return (ETHIOPIC_EPOCH - 1) + 365 * (year - 1) +
+          Math.floor(year / 4) + 30 * (month - 1) + day;
+      }
+
+      function isoToParts(isoStr) {
+        const [y, m, d] = isoStr.split("-").map(Number);
+        return { year: y, month: m, day: d };
+      }
+
+      function partsToIso(y, m, d) {
+        return `${String(y).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      }
+
+      function isoToEc(isoStr) {
+        const { year, month, day } = isoToParts(isoStr);
+        return jdnToEthiopic(gregorianToJdn(year, month, day));
+      }
+
+      function ecToIso(ecYear, ecMonth, ecDay) {
+        const jdn = ethiopicToJdn(ecYear, ecMonth, ecDay);
+        const g = jdnToGregorian(jdn);
+        return partsToIso(g.year, g.month, g.day);
+      }
+
+      function formatEc(ec, lang, shortForm = false) {
+        const mName = lang === "am" ? EC_MONTHS_AM[ec.month - 1] : EC_MONTHS_EN[ec.month - 1];
+        if (shortForm) return `${mName} ${ec.day}`;
+        return lang === "am" ? `${mName} ${ec.day}፣ ${ec.year} ዓ.ም` : `${mName} ${ec.day}, ${ec.year} EC`;
+      }
+
+      function formatGc(isoStr) {
+        const { year, month, day } = isoToParts(isoStr);
+        return `${GC_MONTHS_SHORT[month - 1]} ${day}, ${year}`;
+      }
+
+      function formatGcShort(isoStr) {
+        const { month, day } = isoToParts(isoStr);
+        return `${GC_MONTHS_SHORT[month - 1]} ${day}`;
+      }
+
+      function addDaysIso(isoStr, deltaDays) {
+        const { year, month, day } = isoToParts(isoStr);
+        const jdn = gregorianToJdn(year, month, day) + deltaDays;
+        const g = jdnToGregorian(jdn);
+        return partsToIso(g.year, g.month, g.day);
+      }
+
+      function getTodayIso() {
+        const now = new Date();
+        return partsToIso(now.getFullYear(), now.getMonth() + 1, now.getDate());
+      }
+
+      /* =========================================================
+         2. EXACT CENT / SANTIM ARITHMETIC
+      ========================================================= */
+      function toCents(amount) {
+        const num = Number(amount);
+        if (!Number.isFinite(num)) return 0;
+        return Math.round(num * 100);
+      }
+
+      function fromCents(cents) {
+        return (cents / 100).toFixed(2);
+      }
+
+      function formatMoney(cents, currency, fxRate) {
+        if (currency === "USD") {
+          const usdCents = Math.round(cents / fxRate);
+          return `$${Number(fromCents(usdCents)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+        return `${Number(fromCents(cents)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ብር`;
+      }
+
+      /* =========================================================
+         3. LOCALIZATION & METADATA
+      ========================================================= */
+      const I18N = {
+        en: {
+          appTitle: "Expense & Income Monitor",
+          langBtn: "አማርኛ",
+          daily: "Daily",
+          weekly: "Weekly (7d)",
+          biweekly: "Bi-Weekly (14d)",
+          income: "Total Income",
+          expense: "Total Expenses",
+          net: "Net Cash Flow",
+          burn: "Daily Avg Spend",
+          budgetTitle: "Period Budget Progress",
+          insightsTitle: "Smart Analysis & Insights",
+          trendTitle: "Income vs. Expense Trend",
+          catBreakdown: "Expense Breakdown by Category",
+          bar: "Bar",
+          line: "Line",
+          searchPlaceholder: "Search note or category...",
+          allTypes: "All Types",
+          onlyExp: "Expenses Only",
+          onlyInc: "Income Only",
+          ledgerScope: "Showing entries in selected period",
+          setBudgets: "Set Spending Budgets (ETB)",
+          dailyBud: "Daily Budget Limit (ETB)",
+          weeklyBud: "Weekly (7-Day) Budget Limit (ETB)",
+          biweeklyBud: "Bi-Weekly (14-Day) Budget Limit (ETB)",
+          fxRate: "USD Exchange Rate (1 USD = ? ETB)",
+          saveSettings: "Save Settings",
+          backupTitle: "Export & Backup Data",
+          backupDesc: "Save your records to your phone so you never lose cent-level history.",
+          exportCsv: "Export CSV",
+          exportJson: "Backup JSON",
+          restoreJson: "Restore JSON",
+          resetSample: "Reset Sample Data",
+          fab: "Add",
+          navOverview: "Overview",
+          navCharts: "Charts",
+          navLedger: "Ledger",
+          navSettings: "Budget/CSV",
+          addEntry: "Add Entry",
+          editEntry: "Edit Entry",
+          expenseType: "Expense (ወጪ)",
+          incomeType: "Income (ገቢ)",
+          amountLbl: "Amount (ETB — exact to 0.01)",
+          catLbl: "Category",
+          payLbl: "Payment Method",
+          ecDateLbl: "Ethiopian Calendar Date (የኢትዮጵያ ቀን)",
+          gcDateLbl: "Gregorian Date",
+          noteLbl: "Note (Optional)",
+          saveEntry: "Save Entry",
+          spent: "Spent",
+          budget: "Budget",
+          entries: "entries",
+          vsPrev: "vs prev period",
+          savingsRate: "Savings rate",
+          noEntries: "No entries in this period. Tap + Add to log an expense or income.",
+          edit: "Edit",
+          del: "Delete",
+          savedMsg: "Settings saved!",
+          restoredMsg: "Backup restored successfully!",
+          invalidFile: "Invalid JSON backup file."
+        },
+        am: {
+          appTitle: "የወጪ እና ገቢ መከታተያ",
+          langBtn: "English",
+          daily: "ዕለታዊ",
+          weekly: "ሳምንታዊ (7 ቀን)",
+          biweekly: "የ2 ሳምንት (14 ቀን)",
+          income: "ጠቅላላ ገቢ",
+          expense: "ጠቅላላ ወጪ",
+          net: "የተጣራ ቀሪ",
+          burn: "አማካይ የቀን ወጪ",
+          budgetTitle: "የበጀት አጠቃቀም",
+          insightsTitle: "ትንታኔ እና ምክሮች",
+          trendTitle: "የገቢ እና ወጪ ንጽጽር",
+          catBreakdown: "ወጪ በየዘርፉ",
+          bar: "ባር",
+          line: "መስመር",
+          searchPlaceholder: "ማስታወሻ ወይም ዘርፍ ይፈልጉ...",
+          allTypes: "ሁሉም",
+          onlyExp: "ወጪ ብቻ",
+          onlyInc: "ገቢ ብቻ",
+          ledgerScope: "በተመረጠው ጊዜ ውስጥ ያሉ መዝገቦች",
+          setBudgets: "የወጪ በጀት ማስተካከያ (በብር)",
+          dailyBud: "የዕለት በጀት ገደብ (ብር)",
+          weeklyBud: "የሳምንት (7 ቀን) በጀት ገደብ (ብር)",
+          biweeklyBud: "የ2 ሳምንት (14 ቀን) በጀት ገደብ (ብር)",
+          fxRate: "የዶላር ምንዛሬ (1 USD = ? ብር)",
+          saveSettings: "ቅንብሮችን አስቀምጥ",
+          backupTitle: "መረጃን ማውጣት እና ማስቀመጥ",
+          backupDesc: "የሳንቲም ደረጃ መዝገቦችዎ እንዳይጠፉ በስልክዎ ላይ ያስቀምጡ።",
+          exportCsv: "CSV አውርድ",
+          exportJson: "JSON አስቀምጥ",
+          restoreJson: "JSON መልስ",
+          resetSample: "ናሙና መረጃ መልስ",
+          fab: "መዝግብ",
+          navOverview: "አጠቃላይ እይታ",
+          navCharts: "ግራፎች",
+          navLedger: "መዝገብ",
+          navSettings: "በጀት / CSV",
+          addEntry: "አዲስ መዝግብ",
+          editEntry: "መዝገብ አስተካክል",
+          expenseType: "ወጪ (Expense)",
+          incomeType: "ገቢ (Income)",
+          amountLbl: "መጠን (በብር — እስከ 0.01 ሳንቲም)",
+          catLbl: "ዘርፍ",
+          payLbl: "የክፍያ ዘዴ",
+          ecDateLbl: "የኢትዮጵያ ዘመን አቆጣጠር ቀን",
+          gcDateLbl: "የፈረንጆች ቀን (Gregorian)",
+          noteLbl: "ማስታወሻ (አማራጭ)",
+          saveEntry: "አስቀምጥ",
+          spent: "የወጣ",
+          budget: "በጀት",
+          entries: "መዝገቦች",
+          vsPrev: "ካለፈው ጊዜ ጋር",
+          savingsRate: "የቁጠባ ምጣኔ",
+          noEntries: "በዚህ ጊዜ ውስጥ ምንም መዝገብ የለም። + መዝግብ የሚለውን ይጫኑ።",
+          edit: "አስተካክል",
+          del: "ሰርዝ",
+          savedMsg: "ቅንብሮች ተቀምጠዋል!",
+          restoredMsg: "መረጃው በተሳካ ሁኔታ ተመልሷል!",
+          invalidFile: "ትክክለኛ የJSON ፋይል አይደለም።"
+        }
+      };
+
+      const CATEGORIES = {
+        expense: [
+          { id: "food", en: "Food & Coffee", am: "ምግብ እና ቡና", color: "#10b981" },
+          { id: "transport", en: "Transport / Taxi", am: "ትራንስፖርት / ታክሲ", color: "#3b82f6" },
+          { id: "bills", en: "Airtime, Internet & Bills", am: "ካርድ፣ ኢንተርኔት እና ክፍያዎች", color: "#f59e0b" },
+          { id: "shopping", en: "Shopping & Supplies", am: "ግብይት እና ቁሳቁስ", color: "#8b5cf6" },
+          { id: "health", en: "Health & Personal", am: "ጤና እና የግል ወጪ", color: "#ec4899" },
+          { id: "other_exp", en: "Other Expense", am: "ሌላ ወጪ", color: "#64748b" }
+        ],
+        income: [
+          { id: "salary", en: "Salary / Wage", am: "ደመወዝ", color: "#10b981" },
+          { id: "freelance", en: "Freelance / Project", am: "የግል ሥራ / ፕሮጀክት", color: "#3b82f6" },
+          { id: "business", en: "Business / Sales", am: "ንግድ / ሽያጭ", color: "#8b5cf6" },
+          { id: "gift", en: "Transfer / Bonus", am: "ዝውውር / ቦነስ", color: "#f59e0b" }
+        ]
+      };
+
+      const PAYMENTS = [
+        { id: "telebirr", en: "Telebirr", am: "ቴሌብር" },
+        { id: "cbe", en: "CBE / Bank", am: "ንግድ ባንክ (CBE)" },
+        { id: "cash", en: "Cash", am: "ጥሬ ገንዘብ" },
+        { id: "mpesa", en: "M-Pesa / Mobile", am: "ኤም-ፔሳ / ሞባይል" },
+        { id: "card", en: "Card", am: "ካርድ" }
+      ];
+
+      /* =========================================================
+         4. STATE & SAMPLE SEED DATA
+      ========================================================= */
+      function buildSampleData() {
+        const today = getTodayIso();
+        return [
+          { id: "s1", type: "income", cents: 1850000, category: "salary", payment: "cbe", date: addDaysIso(today, -12), note: "Monthly salary" },
+          { id: "s2", type: "expense", cents: 14550, category: "food", payment: "telebirr", date: addDaysIso(today, -11), note: "Lunch & macchiato" },
+          { id: "s3", type: "expense", cents: 4525, category: "transport", payment: "cash", date: addDaysIso(today, -9), note: "Minibus & taxi" },
+          { id: "s4", type: "expense", cents: 35075, category: "bills", payment: "telebirr", date: addDaysIso(today, -7), note: "Mobile data package" },
+          { id: "s5", type: "income", cents: 420050, category: "freelance", payment: "cbe", date: addDaysIso(today, -5), note: "Client milestone" },
+          { id: "s6", type: "expense", cents: 21040, category: "food", payment: "telebirr", date: addDaysIso(today, -3), note: "Dinner & fruit" },
+          { id: "s7", type: "expense", cents: 3000, category: "transport", payment: "cash", date: addDaysIso(today, -1), note: "Bajaj fare" },
+          { id: "s8", type: "expense", cents: 8565, category: "food", payment: "telebirr", date: today, note: "Morning coffee & breakfast" },
+          { id: "s9", type: "expense", cents: 50, category: "other_exp", payment: "cash", date: today, note: "50 santim change / fee" }
+        ];
+      }
+
+      const defaultState = {
+        lang: "en",
+        currency: "ETB",
+        cycle: "weekly",
+        offset: 0,
+        activeView: "overview",
+        chartType: "bar",
+        axisMode: "both",
+        budgets: {
+          daily: 50000,      // 500.00 ETB
+          weekly: 350000,    // 3,500.00 ETB
+          biweekly: 700000   // 7,000.00 ETB
+        },
+        fxRate: 135.0,
+        transactions: buildSampleData()
+      };
+
+      let state = loadState();
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return structuredClone(defaultState);
+          const parsed = JSON.parse(raw);
+          return {
+            ...structuredClone(defaultState),
+            ...parsed,
+            budgets: { ...defaultState.budgets, ...(parsed.budgets || {}) },
+            transactions: Array.isArray(parsed.transactions) ? parsed.transactions : buildSampleData()
+          };
+        } catch {
+          return structuredClone(defaultState);
+        }
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+          console.warn("Storage warning:", e);
+        }
+      }
+
+      /* =========================================================
+         5. PERIOD RANGE COMPUTATION
+      ========================================================= */
+      function getPeriodWindow(cycle, offset) {
+        const today = getTodayIso();
+        const span = cycle === "daily" ? 1 : cycle === "weekly" ? 7 : 14;
+        const endIso = addDaysIso(today, offset * span);
+        const startIso = addDaysIso(endIso, -(span - 1));
+        const prevEndIso = addDaysIso(startIso, -1);
+        const prevStartIso = addDaysIso(prevEndIso, -(span - 1));
+        return { span, startIso, endIso, prevStartIso, prevEndIso };
+      }
+
+      function inRange(iso, startIso, endIso) {
+        return iso >= startIso && iso <= endIso;
+      }
+
+      /* =========================================================
+         6. RENDERING ENGINE
+      ========================================================= */
+      function t(key) {
+        return I18N[state.lang][key] || key;
+      }
+
+      function getCatLabel(catId, type) {
+        const list = CATEGORIES[type] || [...CATEGORIES.expense, ...CATEGORIES.income];
+        const found = list.find(c => c.id === catId);
+        if (!found) return catId;
+        return state.lang === "am" ? found.am : found.en;
+      }
+
+      function getCatColor(catId) {
+        const all = [...CATEGORIES.expense, ...CATEGORIES.income];
+        const found = all.find(c => c.id === catId);
+        return found ? found.color : "#64748b";
+      }
+
+      function getPayLabel(payId) {
+        const found = PAYMENTS.find(p => p.id === payId);
+        if (!found) return payId;
+        return state.lang === "am" ? found.am : found.en;
+      }
+
+      function renderStaticText() {
+        const todayIso = getTodayIso();
+        const todayEc = isoToEc(todayIso);
+        document.getElementById("todayDualBadge").textContent =
+          `${formatEc(todayEc, state.lang)} • ${formatGc(todayIso)}`;
+
+        document.getElementById("appTitle").textContent = t("appTitle");
+        document.getElementById("langToggle").textContent = t("langBtn");
+        document.getElementById("currToggle").textContent = state.currency === "ETB" ? "ETB (ብር)" : "USD ($)";
+
+        document.getElementById("cycleDaily").textContent = t("daily");
+        document.getElementById("cycleWeekly").textContent = t("weekly");
+        document.getElementById("cycleBiweekly").textContent = t("biweekly");
+
+        document.getElementById("lblIncome").textContent = t("income");
+        document.getElementById("lblExpense").textContent = t("expense");
+        document.getElementById("lblNet").textContent = t("net");
+        document.getElementById("lblBurn").textContent = t("burn");
+        document.getElementById("lblBudgetTitle").textContent = t("budgetTitle");
+        document.getElementById("lblInsightsTitle").textContent = t("insightsTitle");
+        document.getElementById("lblTrendTitle").textContent = t("trendTitle");
+        document.getElementById("lblCatBreakdown").textContent = t("catBreakdown");
+        document.getElementById("btnChartBar").textContent = t("bar");
+        document.getElementById("btnChartLine").textContent = t("line");
+
+        document.getElementById("searchInput").placeholder = t("searchPlaceholder");
+        document.getElementById("optAllTypes").textContent = t("allTypes");
+        document.getElementById("optOnlyExp").textContent = t("onlyExp");
+        document.getElementById("optOnlyInc").textContent = t("onlyInc");
+        document.getElementById("ledgerScopeNote").textContent = t("ledgerScope");
+
+        document.getElementById("lblSetBudgets").textContent = t("setBudgets");
+        document.getElementById("lblDailyBud").textContent = t("dailyBud");
+        document.getElementById("lblWeeklyBud").textContent = t("weeklyBud");
+        document.getElementById("lblBiweeklyBud").textContent = t("biweeklyBud");
+        document.getElementById("lblFxRate").textContent = t("fxRate");
+        document.getElementById("saveSettingsBtn").textContent = t("saveSettings");
+
+        document.getElementById("lblBackupTitle").textContent = t("backupTitle");
+        document.getElementById("lblBackupDesc").textContent = t("backupDesc");
+        document.getElementById("exportCsvBtn").textContent = t("exportCsv");
+        document.getElementById("exportJsonBtn").textContent = t("exportJson");
+        document.getElementById("importJsonLbl").textContent = t("restoreJson");
+        document.getElementById("loadSampleBtn").textContent = t("resetSample");
+
+        document.getElementById("fabLabel").textContent = t("fab");
+        document.getElementById("navOverview").textContent = t("navOverview");
+        document.getElementById("navCharts").textContent = t("navCharts");
+        document.getElementById("navLedger").textContent = t("navLedger");
+        document.getElementById("navSettings").textContent = t("navSettings");
+
+        document.getElementById("btnTypeExpense").textContent = t("expenseType");
+        document.getElementById("btnTypeIncome").textContent = t("incomeType");
+        document.getElementById("lblAmount").textContent = t("amountLbl");
+        document.getElementById("lblCategory").textContent = t("catLbl");
+        document.getElementById("lblPayment").textContent = t("payLbl");
+        document.getElementById("lblEcDate").textContent = t("ecDateLbl");
+        document.getElementById("lblGcDate").textContent = t("gcDateLbl");
+        document.getElementById("lblNote").textContent = t("noteLbl");
+        document.getElementById("saveTxBtn").textContent = t("saveEntry");
+      }
+
+      function renderPeriodHeader(win) {
+        const startEc = isoToEc(win.startIso);
+        const endEc = isoToEc(win.endIso);
+        if (win.span === 1) {
+          document.getElementById("periodEcLabel").textContent = formatEc(endEc, state.lang);
+          document.getElementById("periodGcLabel").textContent = formatGc(win.endIso);
+        } else {
+          document.getElementById("periodEcLabel").textContent =
+            `${formatEc(startEc, state.lang, true)} – ${formatEc(endEc, state.lang)}`;
+          document.getElementById("periodGcLabel").textContent =
+            `${formatGcShort(win.startIso)} – ${formatGc(win.endIso)}`;
+        }
+      }
+
+      function calcDeltaHtml(currCents, prevCents, invertGood = false) {
+        if (prevCents === 0 && currCents === 0) return `0.0% ${t("vsPrev")}`;
+        if (prevCents === 0) return `+100% ${t("vsPrev")}`;
+        const pct = ((currCents - prevCents) / prevCents) * 100;
+        const sign = pct > 0 ? "+" : "";
+        const isGood = invertGood ? pct <= 0 : pct >= 0;
+        return `<span class="${isGood ? "delta-good" : "delta-bad"}">${sign}${pct.toFixed(1)}%</span> ${t("vsPrev")}`;
+      }
+
+      function renderOverview(win, currTxs, prevTxs) {
+        const incCents = currTxs.filter(x => x.type === "income").reduce((s, x) => s + x.cents, 0);
+        const expCents = currTxs.filter(x => x.type === "expense").reduce((s, x) => s + x.cents, 0);
+        const prevInc = prevTxs.filter(x => x.type === "income").reduce((s, x) => s + x.cents, 0);
+        const prevExp = prevTxs.filter(x => x.type === "expense").reduce((s, x) => s + x.cents, 0);
+
+        const netCents = incCents - expCents;
+        const burnCents = Math.round(expCents / win.span);
+        const savingsRate = incCents > 0 ? ((netCents / incCents) * 100).toFixed(1) : "0.0";
+
+        document.getElementById("kpiIncome").textContent = formatMoney(incCents, state.currency, state.fxRate);
+        document.getElementById("kpiExpense").textContent = formatMoney(expCents, state.currency, state.fxRate);
+
+        const netEl = document.getElementById("kpiNet");
+        netEl.textContent = (netCents >= 0 ? "+" : "-") + formatMoney(Math.abs(netCents), state.currency, state.fxRate);
+        netEl.className = "kpi-val " + (netCents >= 0 ? "income" : "expense");
+
+        document.getElementById("kpiBurn").textContent = formatMoney(burnCents, state.currency, state.fxRate);
+        document.getElementById("deltaIncome").innerHTML = calcDeltaHtml(incCents, prevInc, false);
+        document.getElementById("deltaExpense").innerHTML = calcDeltaHtml(expCents, prevExp, true);
+        document.getElementById("kpiSavingsRate").textContent = `${t("savingsRate")}: ${savingsRate}%`;
+        document.getElementById("kpiTxCount").textContent = `${currTxs.length} ${t("entries")}`;
+
+        // Budget bar
+        const budgetCents = state.budgets[state.cycle] || 1;
+        const pct = Math.min(100, (expCents / budgetCents) * 100);
+        const rawPct = (expCents / budgetCents) * 100;
+        const fill = document.getElementById("budgetFill");
+        fill.style.width = `${pct.toFixed(1)}%`;
+        fill.className = "progress-fill" + (rawPct > 100 ? " over" : rawPct > 80 ? " warn" : "");
+        document.getElementById("budgetPctText").textContent = `${rawPct.toFixed(1)}%`;
+        document.getElementById("budgetSpentText").textContent = `${t("spent")}: ${formatMoney(expCents, state.currency, state.fxRate)}`;
+        document.getElementById("budgetLimitText").textContent = `${t("budget")}: ${formatMoney(budgetCents, state.currency, state.fxRate)}`;
+
+        // Insights
+        const insights = [];
+        if (rawPct > 100) {
+          insights.push({
+            cls: "danger",
+            text: state.lang === "am"
+              ? `ወጪዎ ከተያዘው በጀት በ ${(rawPct - 100).toFixed(1)}% በልጧል። አላስፈላጊ ወጪዎችን ይቀንሱ።`
+              : `Spending exceeded your ${state.cycle} budget by ${(rawPct - 100).toFixed(1)}%.`
+          });
+        } else {
+          const rem = Math.max(0, budgetCents - expCents);
+          insights.push({
+            cls: "",
+            text: state.lang === "am"
+              ? `ከበጀትዎ ${formatMoney(rem, state.currency, state.fxRate)} ቀሪ አለዎት (${(100 - rawPct).toFixed(1)}% ቀሪ)።`
+              : `You have ${formatMoney(rem, state.currency, state.fxRate)} remaining in your ${state.cycle} budget.`
+          });
+        }
+
+        // Top category
+        const catMap = {};
+        currTxs.filter(x => x.type === "expense").forEach(x => {
+          catMap[x.category] = (catMap[x.category] || 0) + x.cents;
+        });
+        const sortedCats = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+        if (sortedCats.length > 0) {
+          const [topCat, topCents] = sortedCats[0];
+          const share = expCents > 0 ? ((topCents / expCents) * 100).toFixed(1) : "0.0";
+          insights.push({
+            cls: "warn",
+            text: state.lang === "am"
+              ? `ከፍተኛው ወጪ "${getCatLabel(topCat, "expense")}" ሲሆን ${formatMoney(topCents, state.currency, state.fxRate)} (${share}%) ወጥቷል።`
+              : `Top spending category is "${getCatLabel(topCat, "expense")}" at ${formatMoney(topCents, state.currency, state.fxRate)} (${share}% of expenses).`
+          });
+        }
+
+        document.getElementById("insightsBox").innerHTML = insights
+          .map(i => `<div class="insight-item ${i.cls}">${i.text}</div>`)
+          .join("");
+      }
+
+      function renderCharts(win, currTxs) {
+        // Build daily buckets across window (if daily, show last 7 days context so chart is meaningful)
+        const chartSpan = win.span === 1 ? 7 : win.span;
+        const chartStart = win.span === 1 ? addDaysIso(win.endIso, -6) : win.startIso;
+
+        const days = [];
+        for (let i = 0; i < chartSpan; i++) {
+          const iso = addDaysIso(chartStart, i);
+          const ec = isoToEc(iso);
+          const dayTxs = state.transactions.filter(x => x.date === iso);
+          const inc = dayTxs.filter(x => x.type === "income").reduce((s, x) => s + x.cents, 0);
+          const exp = dayTxs.filter(x => x.type === "expense").reduce((s, x) => s + x.cents, 0);
+          let label = "";
+          if (state.axisMode === "ec") label = formatEc(ec, state.lang, true);
+          else if (state.axisMode === "gc") label = formatGcShort(iso);
+          else label = `${formatEc(ec, state.lang, true)}/${formatGcShort(iso)}`;
+          days.push({ iso, label, inc, exp });
+        }
+
+        drawTrendCanvas(days);
+
+        // Category breakdown
+        const expTxs = currTxs.filter(x => x.type === "expense");
+        const totalExp = expTxs.reduce((s, x) => s + x.cents, 0);
+        const catTotals = {};
+        expTxs.forEach(x => {
+          catTotals[x.category] = (catTotals[x.category] || 0) + x.cents;
+        });
+
+        const sorted = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+        const listEl = document.getElementById("catBreakdownList");
+        if (sorted.length === 0) {
+          listEl.innerHTML = `<div class="empty-state">${t("noEntries")}</div>`;
+          return;
+        }
+
+        listEl.innerHTML = sorted.map(([catId, cents]) => {
+          const pct = totalExp > 0 ? (cents / totalExp) * 100 : 0;
+          const color = getCatColor(catId);
+          return `
+            <div class="cat-row">
+              <div class="cat-meta">
+                <span>${getCatLabel(catId, "expense")}</span>
+                <strong>${formatMoney(cents, state.currency, state.fxRate)} (${pct.toFixed(1)}%)</strong>
+              </div>
+              <div class="cat-bar-bg">
+                <div class="cat-bar-fg" style="width:${pct.toFixed(1)}%;background:${color};"></div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function drawTrendCanvas(days) {
+        const canvas = document.getElementById("trendCanvas");
+        const dpr = window.devicePixelRatio || 1;
+        const logicalW = Math.max(460, days.length * 64);
+        const logicalH = 240;
+        canvas.width = logicalW * dpr;
+        canvas.height = logicalH * dpr;
+        canvas.style.width = logicalW + "px";
+        canvas.style.height = logicalH + "px";
+
+        const ctx = canvas.getContext("2d");
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, logicalW, logicalH);
+
+        const padL = 56, padR = 16, padT = 22, padB = 42;
+        const plotW = logicalW - padL - padR;
+        const plotH = logicalH - padT - padB;
+
+        const maxVal = Math.max(100, ...days.map(d => Math.max(d.inc, d.exp)));
+
+        // Gridlines
+        ctx.strokeStyle = "#263247";
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "11px sans-serif";
+        ctx.textAlign = "right";
+        for (let g = 0; g <= 4; g++) {
+          const y = padT + (plotH * g) / 4;
+          const valCents = Math.round(maxVal * (1 - g / 4));
+          ctx.beginPath();
+          ctx.moveTo(padL, y);
+          ctx.lineTo(logicalW - padR, y);
+          ctx.stroke();
+          const dispVal = state.currency === "USD" ? (valCents / 100 / state.fxRate) : (valCents / 100);
+          ctx.fillText(dispVal.toFixed(0), padL - 6, y + 4);
+        }
+
+        const step = plotW / days.length;
+
+        if (state.chartType === "bar") {
+          const barW = Math.min(18, step * 0.34);
+          days.forEach((d, idx) => {
+            const cx = padL + idx * step + step / 2;
+            const hInc = (d.inc / maxVal) * plotH;
+            const hExp = (d.exp / maxVal) * plotH;
+
+            ctx.fillStyle = "#10b981";
+            ctx.fillRect(cx - barW - 1, padT + plotH - hInc, barW, hInc);
+
+            ctx.fillStyle = "#ef4444";
+            ctx.fillRect(cx + 1, padT + plotH - hExp, barW, hExp);
+          });
+        } else {
+          // Line chart
+          const drawSeries = (key, color) => {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            days.forEach((d, idx) => {
+              const x = padL + idx * step + step / 2;
+              const y = padT + plotH - (d[key] / maxVal) * plotH;
+              if (idx === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            ctx.fillStyle = color;
+            days.forEach((d, idx) => {
+              const x = padL + idx * step + step / 2;
+              const y = padT + plotH - (d[key] / maxVal) * plotH;
+              ctx.beginPath();
+              ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+              ctx.fill();
+            });
+          };
+          drawSeries("inc", "#10b981");
+          drawSeries("exp", "#ef4444");
+        }
+
+        // X-axis labels
+        ctx.fillStyle = "#cbd5e1";
+        ctx.font = "10px sans-serif";
+        ctx.textAlign = "center";
+        days.forEach((d, idx) => {
+          const cx = padL + idx * step + step / 2;
+          ctx.fillText(d.label, cx, logicalH - 14);
+        });
+      }
+
+      function renderLedger(currTxs) {
+        const query = document.getElementById("searchInput").value.trim().toLowerCase();
+        const typeFilter = document.getElementById("typeFilter").value;
+
+        const filtered = currTxs
+          .filter(tx => typeFilter === "all" || tx.type === typeFilter)
+          .filter(tx => {
+            if (!query) return true;
+            const catEn = getCatLabel(tx.category, tx.type).toLowerCase();
+            const pay = getPayLabel(tx.payment).toLowerCase();
+            const note = (tx.note || "").toLowerCase();
+            return catEn.includes(query) || pay.includes(query) || note.includes(query);
+          })
+          .sort((a, b) => b.date.localeCompare(a.date));
+
+        const listEl = document.getElementById("txList");
+        if (filtered.length === 0) {
+          listEl.innerHTML = `<div class="card empty-state">${t("noEntries")}</div>`;
+          return;
+        }
+
+        listEl.innerHTML = filtered.map(tx => {
+          const ec = isoToEc(tx.date);
+          const sign = tx.type === "income" ? "+" : "-";
+          const amtClass = tx.type === "income" ? "income" : "expense";
+          return `
+            <div class="tx-card">
+              <div class="tx-left">
+                <div class="tx-title">
+                  <span>${getCatLabel(tx.category, tx.type)}</span>
+                  <span class="badge">${getPayLabel(tx.payment)}</span>
+                </div>
+                <div class="tx-dates">${formatEc(ec, state.lang)} • ${formatGc(tx.date)}</div>
+                ${tx.note ? `<div class="tx-note">${escapeHtml(tx.note)}</div>` : ""}
+              </div>
+              <div class="tx-right">
+                <div class="tx-amt ${amtClass}">${sign}${formatMoney(tx.cents, state.currency, state.fxRate)}</div>
+                <div class="tx-actions">
+                  <button class="icon-btn" onclick="window.__editTx('${tx.id}')" type="button">${t("edit")}</button>
+                  <button class="icon-btn del" onclick="window.__deleteTx('${tx.id}')" type="button">${t("del")}</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderSettingsInputs() {
+        document.getElementById("inputDailyBudget").value = fromCents(state.budgets.daily);
+        document.getElementById("inputWeeklyBudget").value = fromCents(state.budgets.weekly);
+        document.getElementById("inputBiweeklyBudget").value = fromCents(state.budgets.biweekly);
+        document.getElementById("inputFxRate").value = state.fxRate;
+      }
+
+      function renderAll() {
+        renderStaticText();
+        const win = getPeriodWindow(state.cycle, state.offset);
+        renderPeriodHeader(win);
+
+        const currTxs = state.transactions.filter(tx => inRange(tx.date, win.startIso, win.endIso));
+        const prevTxs = state.transactions.filter(tx => inRange(tx.date, win.prevStartIso, win.prevEndIso));
+
+        renderOverview(win, currTxs, prevTxs);
+        renderCharts(win, currTxs);
+        renderLedger(currTxs);
+        renderSettingsInputs();
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      /* =========================================================
+         7. MODAL & SYNCHRONIZED EC <-> GC DATE PICKER
+      ========================================================= */
+      let modalTxType = "expense";
+
+      function populateDropdowns(selectedCat = null, selectedPay = "telebirr") {
+        const catSel = document.getElementById("txCategory");
+        const cats = CATEGORIES[modalTxType];
+        catSel.innerHTML = cats
+          .map(c => `<option value="${c.id}">${state.lang === "am" ? c.am : c.en}</option>`)
+          .join("");
+        if (selectedCat && cats.some(c => c.id === selectedCat)) {
+          catSel.value = selectedCat;
+        }
+
+        const paySel = document.getElementById("txPayment");
+        paySel.innerHTML = PAYMENTS
+          .map(p => `<option value="${p.id}">${state.lang === "am" ? p.am : p.en}</option>`)
+          .join("");
+        paySel.value = selectedPay;
+      }
+
+      function setModalType(type, keepCat = false) {
+        modalTxType = type;
+        const expBtn = document.getElementById("btnTypeExpense");
+        const incBtn = document.getElementById("btnTypeIncome");
+        expBtn.className = "type-btn" + (type === "expense" ? " active-expense" : "");
+        incBtn.className = "type-btn" + (type === "income" ? " active-income" : "");
+        const prevCat = keepCat ? document.getElementById("txCategory").value : null;
+        const prevPay = document.getElementById("txPayment").value || "telebirr";
+        populateDropdowns(prevCat, prevPay);
+      }
+
+      function populateEcSelectors(ecYear, ecMonth, ecDay) {
+        const mSel = document.getElementById("ecMonth");
+        mSel.innerHTML = EC_MONTHS_AM.map((am, idx) => {
+          const m = idx + 1;
+          const label = state.lang === "am" ? am : `${EC_MONTHS_EN[idx]} (${am})`;
+          return `<option value="${m}">${label}</option>`;
+        }).join("");
+        mSel.value = String(ecMonth);
+
+        const maxD = ecMonthDays(ecYear, ecMonth);
+        const dSel = document.getElementById("ecDay");
+        let opts = "";
+        for (let d = 1; d <= maxD; d++) {
+          opts += `<option value="${d}">${d}</option>`;
+        }
+        dSel.innerHTML = opts;
+        dSel.value = String(Math.min(ecDay, maxD));
+        document.getElementById("ecYear").value = ecYear;
+      }
+
+      function syncFromGcInput() {
+        const iso = document.getElementById("gcDate").value;
+        if (!iso) return;
+        const ec = isoToEc(iso);
+        populateEcSelectors(ec.year, ec.month, ec.day);
+      }
+
+      function syncFromEcInputs() {
+        const y = parseInt(document.getElementById("ecYear").value, 10) || 2019;
+        const m = parseInt(document.getElementById("ecMonth").value, 10) || 1;
+        const maxD = ecMonthDays(y, m);
+        const rawD = parseInt(document.getElementById("ecDay").value, 10) || 1;
+        const d = Math.min(rawD, maxD);
+        populateEcSelectors(y, m, d);
+        document.getElementById("gcDate").value = ecToIso(y, m, d);
+      }
+
+      function openModal(tx = null) {
+        const modal = document.getElementById("txModal");
+        if (tx) {
+          document.getElementById("modalTitle").textContent = t("editEntry");
+          document.getElementById("editId").value = tx.id;
+          setModalType(tx.type, false);
+          populateDropdowns(tx.category, tx.payment);
+          document.getElementById("txAmount").value = fromCents(tx.cents);
+          document.getElementById("gcDate").value = tx.date;
+          syncFromGcInput();
+          document.getElementById("txNote").value = tx.note || "";
+        } else {
+          document.getElementById("modalTitle").textContent = t("addEntry");
+          document.getElementById("editId").value = "";
+          setModalType("expense", false);
+          document.getElementById("txAmount").value = "";
+          document.getElementById("gcDate").value = getTodayIso();
+          syncFromGcInput();
+          document.getElementById("txNote").value = "";
+        }
+        modal.classList.add("open");
+      }
+
+      function closeModal() {
+        document.getElementById("txModal").classList.remove("open");
+      }
+
+      window.__editTx = function (id) {
+        const found = state.transactions.find(x => x.id === id);
+        if (found) openModal(found);
+      };
+
+      window.__deleteTx = function (id) {
+        state.transactions = state.transactions.filter(x => x.id !== id);
+        saveState();
+        renderAll();
+      };
+
+      /* =========================================================
+         8. EVENT LISTENERS
+      ========================================================= */
+      document.getElementById("langToggle").addEventListener("click", () => {
+        state.lang = state.lang === "en" ? "am" : "en";
+        saveState();
+        renderAll();
+      });
+
+      document.getElementById("currToggle").addEventListener("click", () => {
+        state.currency = state.currency === "ETB" ? "USD" : "ETB";
+        saveState();
+        renderAll();
+      });
+
+      document.querySelectorAll(".cycle-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".cycle-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          state.cycle = btn.dataset.cycle;
+          state.offset = 0;
+          saveState();
+          renderAll();
+        });
+      });
+
+      document.getElementById("prevPeriod").addEventListener("click", () => {
+        state.offset -= 1;
+        renderAll();
+      });
+
+      document.getElementById("nextPeriod").addEventListener("click", () => {
+        state.offset += 1;
+        renderAll();
+      });
+
+      document.querySelectorAll(".nav-item").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const view = btn.dataset.view;
+          state.activeView = view;
+          document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          document.querySelectorAll(".view-section").forEach(s => s.classList.remove("active"));
+          document.getElementById("view-" + view).classList.add("active");
+          if (view === "charts") renderAll();
+        });
+      });
+
+      document.querySelectorAll("[data-charttype]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll("[data-charttype]").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          state.chartType = btn.dataset.charttype;
+          renderAll();
+        });
+      });
+
+      document.querySelectorAll("[data-axis]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll("[data-axis]").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          state.axisMode = btn.dataset.axis;
+          renderAll();
+        });
+      });
+
+      document.getElementById("searchInput").addEventListener("input", renderAll);
+      document.getElementById("typeFilter").addEventListener("change", renderAll);
+
+      document.getElementById("openAddModal").addEventListener("click", () => openModal(null));
+      document.getElementById("closeModalBtn").addEventListener("click", closeModal);
+      document.getElementById("txModal").addEventListener("click", (e) => {
+        if (e.target.id === "txModal") closeModal();
+      });
+
+      document.getElementById("btnTypeExpense").addEventListener("click", () => setModalType("expense"));
+      document.getElementById("btnTypeIncome").addEventListener("click", () => setModalType("income"));
+
+      document.querySelectorAll(".chip-btn").forEach(chip => {
+        chip.addEventListener("click", () => {
+          const currCents = toCents(document.getElementById("txAmount").value);
+          const addCents = toCents(chip.dataset.cent);
+          document.getElementById("txAmount").value = fromCents(currCents + addCents);
+        });
+      });
+
+      document.getElementById("gcDate").addEventListener("change", syncFromGcInput);
+      document.getElementById("ecMonth").addEventListener("change", syncFromEcInputs);
+      document.getElementById("ecDay").addEventListener("change", syncFromEcInputs);
+      document.getElementById("ecYear").addEventListener("change", syncFromEcInputs);
+
+      document.getElementById("txForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const cents = toCents(document.getElementById("txAmount").value);
+        if (cents <= 0) return;
+
+        const editId = document.getElementById("editId").value;
+        const entry = {
+          id: editId || "tx_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+          type: modalTxType,
+          cents,
+          category: document.getElementById("txCategory").value,
+          payment: document.getElementById("txPayment").value,
+          date: document.getElementById("gcDate").value,
+          note: document.getElementById("txNote").value.trim()
+        };
+
+        if (editId) {
+          const idx = state.transactions.findIndex(x => x.id === editId);
+          if (idx !== -1) state.transactions[idx] = entry;
+        } else {
+          state.transactions.push(entry);
+        }
+
+        saveState();
+        closeModal();
+        renderAll();
+      });
+
+      document.getElementById("saveSettingsBtn").addEventListener("click", () => {
+        state.budgets.daily = Math.max(100, toCents(document.getElementById("inputDailyBudget").value));
+        state.budgets.weekly = Math.max(100, toCents(document.getElementById("inputWeeklyBudget").value));
+        state.budgets.biweekly = Math.max(100, toCents(document.getElementById("inputBiweeklyBudget").value));
+        const fx = parseFloat(document.getElementById("inputFxRate").value);
+        if (Number.isFinite(fx) && fx > 0) state.fxRate = fx;
+        saveState();
+        renderAll();
+        alert(t("savedMsg"));
+      });
+
+      document.getElementById("exportCsvBtn").addEventListener("click", () => {
+        const headers = ["ID", "Type", "Amount_ETB", "Category", "Payment", "Gregorian_Date", "Ethiopian_Date", "Note"];
+        const rows = state.transactions.map(tx => {
+          const ec = isoToEc(tx.date);
+          return [
+            tx.id,
+            tx.type,
+            fromCents(tx.cents),
+            `"${getCatLabel(tx.category, tx.type)}"`,
+            `"${getPayLabel(tx.payment)}"`,
+            tx.date,
+            `"${formatEc(ec, "en")}"`,
+            `"${(tx.note || "").replace(/"/g, '""')}"`
+          ].join(",");
+        });
+        const csv = "\uFEFF" + [headers.join(","), ...rows].join("\n");
+        downloadBlob(csv, `expense-income-${getTodayIso()}.csv`, "text/csv;charset=utf-8;");
+      });
+
+      document.getElementById("exportJsonBtn").addEventListener("click", () => {
+        const json = JSON.stringify(state, null, 2);
+        downloadBlob(json, `expense-income-backup-${getTodayIso()}.json`, "application/json");
+      });
+
+      document.getElementById("importJsonInput").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const parsed = JSON.parse(reader.result);
+            if (!Array.isArray(parsed.transactions)) throw new Error("Invalid");
+            state = { ...structuredClone(defaultState), ...parsed };
+            saveState();
+            renderAll();
+            alert(t("restoredMsg"));
+          } catch {
+            alert(t("invalidFile"));
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = "";
+      });
+
+      document.getElementById("loadSampleBtn").addEventListener("click", () => {
+        state.transactions = buildSampleData();
+        state.offset = 0;
+        saveState();
+        renderAll();
+      });
+
+      function downloadBlob(content, filename, mime) {
+        const blob = new Blob([content], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      // Initial render
+      renderAll();
+    })();
+  </script>
+</body>
+</html>
